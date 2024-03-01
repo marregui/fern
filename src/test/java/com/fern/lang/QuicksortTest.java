@@ -1,16 +1,3 @@
-/**
- * Copyright (c) Miguel Arregui. All rights reserved.
- * <p>
- * The use and distribution terms for this software are covered by the
- * <p>
- * Apache License 2.0
- * (https://opensource.org/licenses/Apache-2.0)
- * <p>
- * available in the LICENSE file at the root of this distribution.
- * By using this software in any fashion, you are agreeing to be bound
- * by the terms of this license. You must not remove this notice, or
- * any other, from this software.
- **/
 package com.fern.lang;
 
 import static com.fern.lang.Fn.*;
@@ -105,6 +92,7 @@ public class QuicksortTest extends BaseTest {
     public void testQuicksort() {
         assertEquals(qsort.invoke(newlist(3, 1, 6, 1, 0, 9, 2)), newlist(0, 1, 1, 2, 3, 6, 9));
         assertTrue(Arrays.equals(quicksort(new int[]{3, 1, 6, 1, 0, 9, 2}), new int[]{0, 1, 1, 2, 3, 6, 9}));
+        assertTrue(Arrays.equals(quicksort(new int[]{1, 2, 11, 1}), new int[]{1, 1, 2, 11}));
         final int arraySize = 10000;
         final int[] array = genarray(arraySize, 0, arraySize);
         ISeq seq = asList(array.clone());
