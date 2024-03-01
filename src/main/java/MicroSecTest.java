@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 public class MicroSecTest {
     static final class Avg {
-        private double sum = 0.0;
+        private double sum = 0.0d;
         private int points = 0;
 
         void addPoint(long point) {
@@ -32,7 +32,7 @@ public class MicroSecTest {
         }
 
         double get() {
-            return points != 0 ? sum / points : sum;
+            return points != 0.0d ? sum / points : sum;
         }
     }
 
@@ -111,7 +111,7 @@ public class MicroSecTest {
     static void measure(Function<int[], Void> fn, int startArraySize, int incr) {
         int sampleSize = 2000;
         int arraySize = startArraySize;
-        double time = 0.0;
+        double time;
         Avg avg = new Avg();
         do {
             avg.reset();
@@ -121,7 +121,7 @@ public class MicroSecTest {
             }
             time = avg.get();
             arraySize += incr;
-            System.out.printf("Sample |%d|, array |%d| classic -> %.3f\n", sampleSize, arraySize, time);
+            System.out.printf("Sample |%d|, array |%d| -> %.3f\n", sampleSize, arraySize, time);
         } while (100 - time >= 0.001);
         System.out.println("Thanks!");
     }

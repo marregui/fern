@@ -26,6 +26,21 @@ public class Logger implements ILogger {
     private static final Level DEFAULT_LEVEL = Level.INFO;
     private static final Set<String> IGNORE_METHODS = new HashSet<>();
 
+    private static final ThreadLocal<StringBuilder> THREAD_LOCAL = new ThreadLocal<>() {
+        @Override
+        protected StringBuilder initialValue() {
+            return new StringBuilder(255);
+        }
+
+        @Override
+        public StringBuilder get() {
+            StringBuilder sb = super.get();
+            sb.setLength(0);
+            return sb;
+        }
+    };
+
+
     static {
         IGNORE_METHODS.add("java.lang.Thread.getStackTrace");
         StringBuilder sb = new StringBuilder();
@@ -38,7 +53,7 @@ public class Logger implements ILogger {
         }
     }
 
-    public static final ILogger loggerFor(final Class<?> clazz) {
+    public static final ILogger loggerFor(Class<?> clazz) {
         ILogger logger;
         synchronized (LOGGERS) {
             logger = LOGGERS.get(clazz);
@@ -52,27 +67,27 @@ public class Logger implements ILogger {
     private final AtomicReference<Level> level;
 
     private Logger() {
-        this.level = new AtomicReference<>(DEFAULT_LEVEL);
+        level = new AtomicReference<>(DEFAULT_LEVEL);
     }
 
     @Override
-    public void setLevel(final Level level) {
+    public void setLevel(Level level) {
         this.level.set(level);
     }
 
     @Override
     public Level getLevel() {
-        return this.level.get();
+        return level.get();
     }
 
     @Override
-    public void log(final Level level, final String format, final Object... args) {
+    public void log(Level level, String format, Object... args) {
         if (args == null) {
             throw new IllegalArgumentException("args");
         }
         if (getLevel().order() >= level.order()) {
             String location = null;
-            final StringBuilder method = new StringBuilder();
+            StringBuilder method = THREAD_LOCAL.get();
             for (StackTraceElement e : Thread.currentThread().getStackTrace()) {
                 method.setLength(0);
                 method.append(e.getClassName()).append(".").append(e.getMethodName());
