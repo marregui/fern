@@ -1,4 +1,7 @@
-package com.fern.util;
+package com.fern.util.clf;
+
+import com.fern.util.ILogger;
+import com.fern.util.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;

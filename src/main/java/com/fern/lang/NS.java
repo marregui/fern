@@ -1,6 +1,7 @@
 package com.fern.lang;
 
-import static com.fern.util.Tools.str;
+import static com.fern.util.Util.THR_SB;
+import static com.fern.util.Util.str;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,13 +9,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public final class NS {
-    private static final Map<String, ConcurrentMap<String, IFn<?>>> NAMESPACES = new HashMap<>();
+    private static final Map<String, ConcurrentMap<String, IFn<?>>> NAMESPACES = new ConcurrentHashMap<>();
 
-    public static final String GLOBAL_NS = "azji-global-ns";
+    public static final String GLOBAL_NS = "global-ns";
     private static final String SEP = "/";
 
     private static String fnKey(String ns, IFn<?> fn) {
-        return new StringBuilder(ns).append(SEP).append(fn.uniqueId()).toString();
+        return THR_SB.get().append(ns).append(SEP).append(fn.uniqueId()).toString();
     }
 
     public static String regfn(IFn<?> fn) {
@@ -22,11 +23,11 @@ public final class NS {
     }
 
     public static String regfn(String ns, IFn<?> fn) {
-        ConcurrentMap<String, IFn<?>> nsfns = null;
-        synchronized (NAMESPACES) {
-            nsfns = NAMESPACES.get(ns);
-            if (nsfns == null) {
-                NAMESPACES.putIfAbsent(ns, nsfns = new ConcurrentHashMap<>());
+        ConcurrentMap<String, IFn<?>> nsfns = NAMESPACES.get(ns);
+        if (nsfns == null) {
+            ConcurrentMap<String, IFn<?>> other = NAMESPACES.putIfAbsent(ns, nsfns = new ConcurrentHashMap<>());
+            if (other != null) {
+                nsfns = other;
             }
         }
         String uniqueId = fn.uniqueId();
@@ -49,6 +50,6 @@ public final class NS {
                 }
             }
         }
-        throw new IllegalAccessError(str("Not a valid key: %s", fnKey));
+        throw new IllegalAccessError(str("not a valid key: %s", fnKey));
     }
 }

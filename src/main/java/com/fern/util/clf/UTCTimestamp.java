@@ -1,4 +1,4 @@
-package com.fern.util;
+package com.fern.util.clf;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

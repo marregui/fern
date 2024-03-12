@@ -1,5 +1,6 @@
-package com.fern.util;
+package com.fern.util.clf;
 
+import com.fern.util.clf.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

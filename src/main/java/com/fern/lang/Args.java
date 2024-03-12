@@ -1,8 +1,11 @@
 package com.fern.lang;
 
-import static com.fern.util.Tools.noe;
+import com.fern.util.Util;
+
+import static com.fern.util.Util.noe;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 final class Args {
     private final Class<?>[] defs;
@@ -19,20 +22,15 @@ final class Args {
     }
 
     String moniker() {
-        String argsDesc = "";
         if (defs.length > 0) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < defs.length; i++) {
-                Class<?> clazz = defs[i];
-                sb.append(clazz.getSimpleName()).append(", ");
-            }
-            sb.setLength(sb.length() - 2);
+            StringBuilder sb = Util.THR_SB.get();
+            sb.append(Arrays.stream(defs).map(Class::getSimpleName).collect(Collectors.joining(", ")));
             if (lastArgIsVararg) {
                 sb.append("*");
             }
-            argsDesc = sb.toString();
+            return sb.toString();
         }
-        return argsDesc;
+        return null;
     }
 
     boolean isLastArgVararg() {
@@ -60,11 +58,10 @@ final class Args {
         if (this == o) {
             return true;
         }
-        if (o == null || false == o instanceof Args) {
-            return false;
+        if (o instanceof Args that) {
+            return lastArgIsVararg == that.lastArgIsVararg && Arrays.equals(defs, that.defs);
         }
-        Args that = (Args) o;
-        return lastArgIsVararg == that.lastArgIsVararg && Arrays.equals(defs, that.defs);
+        return false;
     }
 
     Args from(int idx) {
@@ -81,7 +78,7 @@ final class Args {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = Util.THR_SB.get();
         for (int i = 0; i < defs.length; i++) {
             sb.append("$").append(i + 1).append(" ").append(defs[i]).append(", ");
         }

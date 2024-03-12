@@ -1,12 +1,11 @@
 package com.fern.seq;
 
-import static com.fern.util.Tools.safeLen;
-import static com.fern.util.Tools.str;
-
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.fern.util.Util.*;
 
 public class List extends ABaseSeq {
 
@@ -72,6 +71,7 @@ public class List extends ABaseSeq {
      * No parameters: if the list contains null it will return its position, otherwise null.
      * <br/>
      * One parameter: will search for the parameter returning its position, otherwise null.
+     *
      * @param args,
      * @return null or the position of the first arg in the list
      */
@@ -100,44 +100,39 @@ public class List extends ABaseSeq {
         if (this == o) {
             return true;
         }
-        if (false == (o instanceof ISeq)) {
-            return false;
-        }
-        ISeq that = (ISeq) o;
-        if (size != that.size()) {
-            return false;
-        }
-        Iterator<Object> thatIterator = that.iterator();
-        for (int i = start; i < end && thatIterator.hasNext(); i++) {
-            Object e1 = elements[i];
-            Object e2 = thatIterator.next();
-            if (false == (e1 == null ? e2 == null : e1.equals(e2))) {
+        if (o instanceof ISeq that) {
+            if (size != that.size()) {
                 return false;
             }
+            Iterator<Object> thatIterator = that.iterator();
+            for (int i = start; i < end && thatIterator.hasNext(); i++) {
+                Object e1 = elements[i];
+                Object e2 = thatIterator.next();
+                if (false == (e1 == null ? e2 == null : e1.equals(e2))) {
+                    return false;
+                }
+            }
+            return true;
         }
-        return true;
+        return false;
     }
 
     @Override
     public String toString() {
         String str = quickStr.get();
-        if (str == null) {
-
-            synchronized (quickStr) {
-                str = quickStr.get();
-                if (str == null) {
-                    StringBuilder sb = new StringBuilder("[");
-                    for (int i = start; i < end; i++) {
-                        sb.append(elements[i]).append(TO_STR_SEP);
-                    }
-                    if (size > 0) {
-                        sb.setLength(sb.length() - TO_STR_SEP.length());
-                    }
-                    sb.append("]");
-                    quickStr.set(sb.toString());
-                }
-            }
+        if (str != null) {
+            return str;
         }
+        StringBuilder sb = THR_SB.get();
+        sb.append("[");
+        for (int i = start; i < end; i++) {
+            sb.append(elements[i]).append(TO_STR_SEP);
+        }
+        if (size > 0) {
+            sb.setLength(sb.length() - TO_STR_SEP.length());
+        }
+        sb.append("]");
+        quickStr.compareAndSet(null, sb.toString());
         return quickStr.get();
     }
 
@@ -173,20 +168,16 @@ public class List extends ABaseSeq {
     @Override
     public ISeq rest() {
         ISeq rest = quickRest.get();
-        if (rest == null) {
-            synchronized (quickRest) {
-                rest = quickRest.get();
-                if (rest == null) {
-                    switch (size) {
-                        case 0:
-                        case 1:
-                            quickRest.set(NIL);
-                            break;
-                        default:
-                            quickRest.set(new List(start + 1, end, elements));
-                    }
-                }
-            }
+        if (rest != null) {
+            return rest;
+        }
+        switch (size) {
+            case 0:
+            case 1:
+                quickRest.compareAndSet(null, NIL);
+                break;
+            default:
+                quickRest.compareAndSet(null, new List(start + 1, end, elements));
         }
         return quickRest.get();
     }
@@ -200,7 +191,7 @@ public class List extends ABaseSeq {
                 filledAvailableSlot = true;
             }
         }
-        ISeq array = null;
+        ISeq array;
         if (filledAvailableSlot) {
             array = new List(start - 1, end, elements);
         } else {
@@ -223,7 +214,7 @@ public class List extends ABaseSeq {
                 filledAvailableSlot = true;
             }
         }
-        ISeq array = null;
+        ISeq array;
         if (filledAvailableSlot) {
             array = new List(start, end + 1, elements);
         } else {
@@ -239,33 +230,29 @@ public class List extends ABaseSeq {
     @Override
     public Object[] toArray() {
         Object[] array = quickToArray.get();
-        if (array == null) {
-            synchronized (quickToArray) {
-                array = quickToArray.get();
-                if (array == null) {
-                    array = new Object[size];
-                    System.arraycopy(elements, start, array, 0, size);
-                    quickToArray.set(array);
-                }
-            }
+        if (array != null) {
+            return array;
         }
+        array = new Object[size];
+        System.arraycopy(elements, start, array, 0, size);
+        quickToArray.compareAndSet(null, array);
         return quickToArray.get();
     }
 
     @Override
     public Iterator<Object> iterator() {
-        return new Iterator<Object>() {
-            private int idx = List.this.start;
+        return new Iterator<>() {
+            private int idx = start;
 
             @Override
             public boolean hasNext() {
-                return this.idx < List.this.end;
+                return idx < end;
             }
 
             @Override
             public Object next() {
                 if (hasNext()) {
-                    return List.this.elements[this.idx++];
+                    return elements[idx++];
                 }
                 throw new IndexOutOfBoundsException();
             }
@@ -279,8 +266,8 @@ public class List extends ABaseSeq {
 
     @Override
     public ISeq sorted(Comparator<Object> comparator) {
-        Object[] els = new Object[this.size];
-        System.arraycopy(this.elements, this.start, els, 0, this.size);
+        Object[] els = new Object[size];
+        System.arraycopy(elements, start, els, 0, size);
         Arrays.sort(els, comparator);
         return new List(els);
     }

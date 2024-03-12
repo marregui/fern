@@ -2,8 +2,6 @@ package com.fern.lang;
 
 import org.junit.Test;
 import com.fern.BaseTest;
-import com.fern.lang.FnBody;
-import com.fern.lang.IFn;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -15,7 +13,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static com.fern.lang.Fn.*;
-import static com.fern.util.Tools.str;
+import static com.fern.util.Util.str;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;

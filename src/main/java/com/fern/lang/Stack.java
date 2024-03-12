@@ -1,5 +1,7 @@
 package com.fern.lang;
 
+import com.fern.util.Util;
+
 class Stack {
     private static final int INIT_SIZE = 20;
     private static final int GROWTH_FACTOR = 2;
@@ -72,7 +74,8 @@ class Stack {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("[<");
+        StringBuilder sb = Util.THR_SB.get();
+        sb.append("[<");
         synchronized (this) {
             sb.append(offset).append(">|");
             for (int i = 0; i < offset; i++) {

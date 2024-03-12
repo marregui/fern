@@ -1,4 +1,6 @@
-package com.fern.util;
+package com.fern.util.clf;
+
+import com.fern.util.Util;
 
 import java.text.ParseException;
 import java.util.*;
@@ -182,7 +184,7 @@ public final class CLFParser {
             int i = offset;
             if (openDelimiter != NULL_DELIM) {
                 if (openDelimiter != logLine.charAt(offset)) {
-                    throw new IllegalArgumentException(String.format(
+                    throw new IllegalArgumentException(Util.str(
                             "parsing [%s] offset:%d, expected:%c, found:%c, logLine: %s",
                             this,
                             offset,
@@ -200,7 +202,7 @@ public final class CLFParser {
             }
             if (closeDelimiter != NULL_DELIM) {
                 if (closeDelimiter != logLine.charAt(i)) {
-                    throw new IllegalArgumentException(String.format(
+                    throw new IllegalArgumentException(Util.str(
                             "parsing [%s] offset:%d, expected:%c, found:%c, logLine:%s",
                             this,
                             i,

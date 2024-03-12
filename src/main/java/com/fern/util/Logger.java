@@ -1,51 +1,22 @@
 package com.fern.util;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.HashSet;
+
+import static com.fern.util.Util.str;
 
 public class Logger implements ILogger {
-    private static final Map<Class<?>, ILogger> LOGGERS = new HashMap<>();
+    private static final ConcurrentMap<Class<?>, ILogger> LOGGERS = new ConcurrentHashMap<>();
     private static final Level DEFAULT_LEVEL = Level.INFO;
-    private static final Set<String> IGNORE_METHODS = new HashSet<>();
 
-    private static final ThreadLocal<StringBuilder> THREAD_LOCAL = new ThreadLocal<>() {
-        @Override
-        protected StringBuilder initialValue() {
-            return new StringBuilder(255);
-        }
-
-        @Override
-        public StringBuilder get() {
-            StringBuilder sb = super.get();
-            sb.setLength(0);
-            return sb;
-        }
-    };
-
-
-    static {
-        IGNORE_METHODS.add("java.lang.Thread.getStackTrace");
-        StringBuilder sb = new StringBuilder();
-        sb.append(Logger.class.getName()).append(".");
-        int sbRootLen = sb.length();
-        for (Method method : ILogger.class.getDeclaredMethods()) {
-            sb.setLength(sbRootLen);
-            sb.append(method.getName());
-            IGNORE_METHODS.add(sb.toString());
-        }
-    }
+    private final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
 
     public static final ILogger loggerFor(Class<?> clazz) {
-        ILogger logger;
-        synchronized (LOGGERS) {
-            logger = LOGGERS.get(clazz);
-            if (logger == null) {
-                LOGGERS.put(clazz, logger = new Logger());
+        ILogger logger = LOGGERS.get(clazz);
+        if (logger == null) {
+            ILogger other = LOGGERS.putIfAbsent(clazz, logger = new Logger());
+            if (other != null) {
+                logger = other;
             }
         }
         return logger;
@@ -58,8 +29,8 @@ public class Logger implements ILogger {
     }
 
     @Override
-    public void setLevel(Level level) {
-        this.level.set(level);
+    public void setLevel(Level newLevel) {
+        level.set(newLevel);
     }
 
     @Override
@@ -69,27 +40,32 @@ public class Logger implements ILogger {
 
     @Override
     public void log(Level level, String format, Object... args) {
-        if (args == null) {
-            throw new IllegalArgumentException("args");
-        }
         if (getLevel().order() >= level.order()) {
-            String location = null;
-            StringBuilder method = THREAD_LOCAL.get();
-            for (StackTraceElement e : Thread.currentThread().getStackTrace()) {
-                method.setLength(0);
-                method.append(e.getClassName()).append(".").append(e.getMethodName());
-                if (IGNORE_METHODS.contains(method.toString())) {
-                    continue;
+            EXECUTOR.submit(() -> {
+                String location = null;
+                StringBuilder method = Util.THR_SB.get();
+                StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+                for (int i = 0; i < stack.length; i++) {
+                    StackTraceElement e = stack[i];
+                    String className = e.getClassName();
+                    int j = className.length() - 1;
+                    while (j > 0 && className.charAt(j) != '.') {
+                        --j;
+                    }
+                    j++;
+
+                    method.setLength(0);
+                    method.append(className.substring(j)).append(".").append(e.getMethodName());
+                    location = method.append("(l:").append(e.getLineNumber()).append(")").toString();
+                    break;
                 }
-                location = method.append("(l:").append(e.getLineNumber()).append(")").toString();
-                break;
-            }
-            System.out.printf("%-5s <%d> Thr(%s) %s -> %s\n",
-                    level,
-                    TimeUnit.NANOSECONDS.toMicros(System.nanoTime()),
-                    Thread.currentThread().getName(),
-                    location,
-                    String.format(format, args));
+                System.out.print(str("%s <%d> Thr(%s) %s -> %s\n",
+                        level,
+                        TimeUnit.NANOSECONDS.toMicros(System.nanoTime()),
+                        Thread.currentThread().getName(),
+                        location,
+                        str(format, args)));
+            });
         }
     }
 
@@ -112,4 +88,6 @@ public class Logger implements ILogger {
     public final void error(String format, Object... args) {
         log(Level.ERROR, format, args);
     }
+
+    public static void main() {}
 }

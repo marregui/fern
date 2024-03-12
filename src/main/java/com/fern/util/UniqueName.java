@@ -3,9 +3,6 @@ package com.fern.util;
 import java.util.Arrays;
 import java.util.Iterator;
 
-/**
- * Produces unique ids
- */
 public final class UniqueName implements Iterable<String>, Iterator<String> {
     private static final String DEFAULT_NAME_SPACE = "dns_";
     private static final int DEFAULT_NUM_DIGITS = 5;
@@ -18,7 +15,7 @@ public final class UniqueName implements Iterable<String>, Iterator<String> {
         static final UniqueName UNIQUE_INSTANCE = new UniqueName();
     }
 
-    public static final UniqueName get() {
+    public static UniqueName get() {
         return SingletonInstantiate.UNIQUE_INSTANCE;
     }
 
@@ -37,7 +34,7 @@ public final class UniqueName implements Iterable<String>, Iterator<String> {
     }
 
     @Override
-    public final synchronized String toString() {
+    public synchronized String toString() {
         sb.setLength(nameSpace.length());
         for (int i = 0; i < numDigits; i++) {
             sb.append((char) offsets[i]);

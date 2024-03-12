@@ -1,6 +1,6 @@
 package com.fern.lang;
 
-import static com.fern.util.Tools.str;
+import static com.fern.util.Util.str;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.concurrent.atomic.AtomicInteger;

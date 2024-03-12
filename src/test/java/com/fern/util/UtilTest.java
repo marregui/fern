@@ -2,13 +2,10 @@ package com.fern.util;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static com.fern.util.Tools.noe;
-import static com.fern.util.Tools.safeLen;
-import static org.junit.Assert.assertEquals;
+import static com.fern.util.Util.*;
+import static org.junit.Assert.*;
 
-public class ToolsTest {
+public class UtilTest {
     @Test
     public void testNoe() {
         assertTrue(noe(null));
@@ -27,5 +24,17 @@ public class ToolsTest {
         assertEquals(safeLen(null), -1);
         assertEquals(safeLen(1, 2, 3), 3);
         assertEquals(safeLen("Miguel", 3), 2);
+    }
+
+    @Test
+    public void testStr() {
+        assertNull(str(null));
+        assertEquals("ramon", str("ramon", 2, 3));
+        assertEquals("ramon\n", str("ramon\n", 2, 3));
+        assertEquals("ramon\n", str("ramon%n", 2, 3));
+        assertEquals("ramon\n", str("ramon%n", 2, 3));
+        assertEquals("ramon%", str("ramon%%", 2, 3));
+        assertEquals("ram%%%%on%", str("ram%%%%%%%%on%%", 2, 3));
+        assertEquals("ram%%2%%on%", str("ram%%%%%d%%%%on%%", 2, 3));
     }
 }

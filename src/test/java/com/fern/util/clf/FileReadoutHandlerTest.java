@@ -1,4 +1,4 @@
-package com.fern.util;
+package com.fern.util.clf;
 
 
 import java.io.IOException;
@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.fern.util.Store;
 import org.junit.Assert;
 import org.junit.Test;
 

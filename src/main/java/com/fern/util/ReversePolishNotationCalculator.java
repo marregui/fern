@@ -1,4 +1,4 @@
-package com.fern.ast;
+package com.fern.util;
 
 import java.util.HashMap;
 import java.util.List;

@@ -4,7 +4,7 @@ import com.fern.seq.Colls;
 import com.fern.seq.ISeq;
 import com.fern.seq.List;
 
-import static com.fern.util.Tools.str;
+import static com.fern.util.Util.str;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -25,30 +25,30 @@ public final class Fn {
         return new Args(true, defs);
     }
 
-    public static final <RT> IFn<RT> defn(FnBody<RT> fbBody) {
+    public static <RT> IFn<RT> defn(FnBody<RT> fbBody) {
         return new AFn<>(null, null, defargs(), fbBody);
     }
 
-    public static final <RT> IFn<RT> defn(Args args, FnBody<RT> fnBody) {
+    public static <RT> IFn<RT> defn(Args args, FnBody<RT> fnBody) {
         return new AFn<>(null, null, args, fnBody);
     }
 
-    public static final <RT> IFn<RT> defn(String name, FnBody<RT> fbBody) {
+    public static <RT> IFn<RT> defn(String name, FnBody<RT> fbBody) {
         return new AFn<>(name, null, defargs(), fbBody);
     }
 
-    public static final <RT> IFn<RT> defn(String name, Args args, FnBody<RT> fnBody) {
+    public static <RT> IFn<RT> defn(String name, Args args, FnBody<RT> fnBody) {
         return new AFn<>(name, null, args, fnBody);
     }
 
-    public static final <RT> IFn<RT> defn(String name, String doc, Args args, FnBody<RT> fnBody) {
+    public static <RT> IFn<RT> defn(String name, String doc, Args args, FnBody<RT> fnBody) {
         return new AFn<>(name, doc, args, fnBody);
     }
 
     // ===========================
     // =    P R E D I C A T E    =
     // ===========================
-    public static final IPredicate defpred(FnBody<Boolean> fnBody) {
+    public static IPredicate defpred(FnBody<Boolean> fnBody) {
         return new AFn<>(null, null, defvarargs(Object.class), fnBody)::invoke;
     }
 
@@ -56,11 +56,11 @@ public final class Fn {
     // =    C O M P O S I T I O N    =
     // ===============================
     @SuppressWarnings({"unchecked"})
-    public static final <RT> IFn<RT> compose(IFn<?>... fns) {
+    public static <RT> IFn<RT> compose(IFn<?>... fns) {
         if (fns.length < 1) {
             throw new IllegalArgumentException("at least 1 fn is required");
         }
-        final IFn<?> firstFn = fns[0];
+        IFn<?> firstFn = fns[0];
         Class<?> prevFnReturnType = firstFn.returnType();
         for (int i = 1; i < fns.length; i++) {
             IFn<?> fn = fns[i];
@@ -83,7 +83,7 @@ public final class Fn {
         });
     }
 
-    private static final Class<?> zeroth(IFn<?> fn) {
+    private static Class<?> zeroth(IFn<?> fn) {
         Args argDefs = fn.argDefs();
         if (argDefs.size() == 1) {
             return argDefs.get(0);
@@ -94,14 +94,14 @@ public final class Fn {
     // ===================
     // =    A P P L Y    =
     // ===================
-    public static final <RT> RT apply(IFn<RT> fn, ISeq argsSeq) {
+    public static <RT> RT apply(IFn<RT> fn, ISeq argsSeq) {
         return fn.invoke(argsSeq.toArray());
     }
 
     // =========================
     // =    C U R R Y I N G    =
     // =========================
-    public static final <RT> IFn<RT> curry(IFn<RT> fn, Object... args) {
+    public static <RT> IFn<RT> curry(IFn<RT> fn, Object... args) {
         if (args.length == 0) {
             return fn;
         }
@@ -125,12 +125,12 @@ public final class Fn {
     // =====================
     // =    R E D U C E    =
     // =====================
-    public static final <RT> RT reduce(IFn<RT> fn, ISeq vals) {
+    public static <RT> RT reduce(IFn<RT> fn, ISeq vals) {
         return reduce(fn, vals.first(), vals.rest());
     }
 
     @SuppressWarnings("unchecked")
-    public static final <RT> RT reduce(IFn<RT> fn, Object initVal, ISeq vals) {
+    public static <RT> RT reduce(IFn<RT> fn, Object initVal, ISeq vals) {
         if (fn.argDefs().size() != 2) {
             throw new IllegalArgumentException(str("expected fn/2, got: %s", fn));
         }
@@ -148,7 +148,7 @@ public final class Fn {
     // ===============
     // =    M A P    =
     // ===============
-    private static final int minSize(ISeq... seqs) {
+    private static int minSize(ISeq... seqs) {
         int min = Integer.MAX_VALUE;
         for (ISeq seq : seqs) {
             min = Math.min(min, seq.size());
@@ -156,7 +156,7 @@ public final class Fn {
         return min;
     }
 
-    public static final ISeq map(IFn<?> fn, ISeq... seqs) {
+    public static ISeq map(IFn<?> fn, ISeq... seqs) {
         int numberOfFnInvokes = minSize(seqs);
         if (seqs.length == 0 || numberOfFnInvokes == 0) {
             return new List();
@@ -179,11 +179,11 @@ public final class Fn {
     // =====================
     // =    F I L T E R    =
     // =====================
-    public static final ISeq filter(IPredicate pred, ISeq seq) {
+    public static ISeq filter(IPredicate pred, ISeq seq) {
         return filter(pred, seq, null);
     }
 
-    public static final ISeq filter(IPredicate pred, ISeq seq, Object... xargs) {
+    public static ISeq filter(IPredicate pred, ISeq seq, Object... xargs) {
         if (Colls.isNil(seq) || seq.size() == 0) {
             return new List();
         }
@@ -207,11 +207,11 @@ public final class Fn {
     // ===========================
     // =    G E N E R A T O R    =
     // ===========================
-    public static final <RT> ISeq generator(IFn<RT> fn, ISeq... seqs) {
+    public static <RT> ISeq generator(IFn<RT> fn, ISeq... seqs) {
         return generator(fn, null, seqs);
     }
 
-    public static final <RT> ISeq generator(IFn<RT> fn, IPredicate condPred, ISeq... seqs) {
+    public static <RT> ISeq generator(IFn<RT> fn, IPredicate condPred, ISeq... seqs) {
         if (seqs.length == 0) {
             return new List();
         }
@@ -233,7 +233,7 @@ public final class Fn {
         throw new IllegalArgumentException(str("%s incompatible with |seqs| = %d", fn, seqs.length));
     }
 
-    private static final int resultsSize(ISeq... seqs) {
+    private static int resultsSize(ISeq... seqs) {
         int resultsSize = seqs[0].size();
         for (int i = 1; i < seqs.length; i++) {
             resultsSize *= seqs[i].size();
@@ -241,7 +241,7 @@ public final class Fn {
         return resultsSize;
     }
 
-    private static final class LoopIdxs implements Iterator<int[]>, Iterable<int[]> {
+    private static class LoopIdxs implements Iterator<int[]>, Iterable<int[]> {
         static LoopIdxs of(ISeq... seqs) {
             return new LoopIdxs(seqs);
         }
@@ -307,7 +307,7 @@ public final class Fn {
     // =====================
     // =    C O N C A T    =
     // =====================
-    public static final ISeq concat(Object... objs) {
+    public static ISeq concat(Object... objs) {
         int size = 0;
         for (int i = 0; i < objs.length; i++) {
             Object e = objs[i];
@@ -332,11 +332,11 @@ public final class Fn {
     // =================
     // =    S O M E    =
     // =================
-    public static final Object some(IPredicate pred, ISeq seq) {
+    public static Object some(IPredicate pred, ISeq seq) {
         return some(pred, seq, null);
     }
 
-    public static final Object some(IPredicate pred, ISeq seq, Object... xargs) {
+    public static Object some(IPredicate pred, ISeq seq, Object... xargs) {
         if (Colls.isNil(seq) || seq.size() == 0) {
             return seq;
         }
@@ -358,15 +358,15 @@ public final class Fn {
     // ===================
     // =    R A N G E    =
     // ===================
-    public static final ISeq range(int end) {
+    public static ISeq range(int end) {
         return range(0, end, 1);
     }
 
-    public static final ISeq range(int start, int end) {
+    public static ISeq range(int start, int end) {
         return range(start, end, start < end ? 1 : -1);
     }
 
-    public static final ISeq range(int start, int end, int step) {
+    public static ISeq range(int start, int end, int step) {
         if (start == end) {
             return new List();
         }
@@ -390,7 +390,7 @@ public final class Fn {
     // =================
     // =    T A K E    =
     // =================
-    public static final ISeq take(int n, ISeq seq) {
+    public static ISeq take(int n, ISeq seq) {
         if (n < 0) {
             throw new IllegalArgumentException("n cannot be negative");
         }
@@ -405,11 +405,11 @@ public final class Fn {
         return new List(array);
     }
 
-    public static final ISeq takewhile(IPredicate pred, ISeq seq) {
+    public static ISeq takewhile(IPredicate pred, ISeq seq) {
         return takewhile(pred, seq, null);
     }
 
-    public static final ISeq takewhile(IPredicate pred, ISeq seq, Object... xargs) {
+    public static ISeq takewhile(IPredicate pred, ISeq seq, Object... xargs) {
         if (Colls.isNil(seq) || seq.isEmpty()) {
             return seq;
         }
@@ -433,7 +433,7 @@ public final class Fn {
     // =================
     // =    D R O P    =
     // =================
-    public static final ISeq drop(int n, ISeq seq) {
+    public static ISeq drop(int n, ISeq seq) {
         if (n < 0) {
             throw new IllegalArgumentException("n cannot be negative");
         }
@@ -448,11 +448,11 @@ public final class Fn {
         return new List(array);
     }
 
-    public static final ISeq dropwhile(IPredicate pred, ISeq seq) {
+    public static ISeq dropwhile(IPredicate pred, ISeq seq) {
         return dropwhile(pred, seq, null);
     }
 
-    public static final ISeq dropwhile(IPredicate pred, ISeq seq, Object... xargs) {
+    public static ISeq dropwhile(IPredicate pred, ISeq seq, Object... xargs) {
         if (Colls.isNil(seq) || seq.isEmpty()) {
             return seq;
         }

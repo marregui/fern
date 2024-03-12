@@ -1,7 +1,8 @@
-package com.fern.util;
+package com.fern.util.clf;
 
 import java.text.ParseException;
 
+import com.fern.util.clf.UTCTimestamp;
 import org.junit.Assert;
 import org.junit.Test;
 
