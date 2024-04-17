@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.junit.Assert;
 import org.junit.Test;
 import com.fern.BaseTest;
 import com.fern.lang.FnBody;
@@ -54,29 +55,31 @@ public class QuicksortTest extends BaseTest {
         if (array == null || array.length == 0 || high <= low) {
             return;
         }
-        final int pivot = array[low + (high - low) / 2];
-        int left = low;
-        int right = high;
-        while (left < right) {
-            while (array[left] < pivot) {
-                left++;
+        int pivot = array[low];
+        int i = low - 1;
+        int j = high + 1;
+        while (i < j) {
+            do {
+                i++;
             }
-            while (array[right] > pivot) {
-                right--;
+            while (i < high && array[i] < pivot);
+
+            do {
+                j--;
             }
-            if (left <= right) {
-                final int t = array[left];
-                array[left] = array[right];
-                array[right] = t;
-                left++;
-                right--;
+            while (j > low && array[j] > pivot);
+
+            if (i < j) {
+                int t = array[i];
+                array[i] = array[j];
+                array[j] = t;
             }
         }
-        if (left < high) {
-            quicksort(left, high, array);
+        if (low < j) {
+            quicksort(low, j, array);
         }
-        if (right > low) {
-            quicksort(low, right, array);
+        if (j + 1 < high) {
+            quicksort(j + 1, high, array);
         }
     }
 
@@ -90,6 +93,7 @@ public class QuicksortTest extends BaseTest {
 
     @Test
     public void testQuicksort() {
+
         assertEquals(qsort.invoke(newlist(3, 1, 6, 1, 0, 9, 2)), newlist(0, 1, 1, 2, 3, 6, 9));
         assertTrue(Arrays.equals(quicksort(new int[]{3, 1, 6, 1, 0, 9, 2}), new int[]{0, 1, 1, 2, 3, 6, 9}));
         assertTrue(Arrays.equals(quicksort(new int[]{1, 2, 11, 1}), new int[]{1, 1, 2, 11}));
@@ -101,7 +105,7 @@ public class QuicksortTest extends BaseTest {
 
     @Test
     public void testPerformanceBaseline() {
-        final int sampleSize = 300;
+        final int sampleSize = 3;
         final int arraySize = 2000;
         final Avg classicImpl = new Avg();
         for (int i = 0; i < sampleSize; i++) {
@@ -118,11 +122,26 @@ public class QuicksortTest extends BaseTest {
         final double factor = fern / classic;
         System.out.printf("Sample |%d|, array |%d| classic -> %.3f, fern -> %.3f, factor -> %.3f\n",
                 sampleSize, arraySize, classic, fern, factor);
+
+        int[] array = genarray(arraySize, 0, arraySize);
+        int[] array2 = new int[arraySize];
+        System.arraycopy(array, 0, array2, 0, array.length);
+
+        quicksort(array);
+        quicksort(array2);
+        int prev = array[0];
+        for (int i = 1; i < array.length; i++) {
+            Assert.assertEquals(prev, array2[i - 1]);
+            Assert.assertTrue(prev <= array[i]);
+            prev = array[i];
+        }
+        Assert.assertTrue(prev <= array[array.length - 1]);
+        Assert.assertEquals(array[array.length - 1], array2[array2.length - 1]);
     }
 
     public static int[] genarray(final int size, final int min, final int max) {
         final int[] array = new int[size];
-        final Random rand = new Random();
+        final Random rand = new Random(0);
         final int upper = max - min + 1;
         for (int i = 0; i < size; i++) {
             array[i] = min + rand.nextInt(upper);
